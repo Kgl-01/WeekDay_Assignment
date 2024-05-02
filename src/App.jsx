@@ -1,3 +1,4 @@
+import BoltIcon from "@mui/icons-material/Bolt"
 import {
   Avatar,
   Button,
@@ -5,15 +6,11 @@ import {
   CardActions,
   CardContent,
   CardHeader,
-  CardMedia,
-  Chip,
   Container,
   Grid,
   Typography,
   styled,
 } from "@mui/material"
-import BoltIcon from "@mui/icons-material/Bolt"
-import AccountCircleIcon from "@mui/icons-material/AccountCircleRounded"
 import axios from "axios"
 import { useEffect, useState } from "react"
 
@@ -105,12 +102,45 @@ function App() {
                       <small>{capitalizeFirstLetter(job.location)}</small>
                     }
                   />
-                  <CardContent>
+                  <CardContent sx={{ position: "relative" }}>
                     <Typography variant="h6">About Company:</Typography>
-                    <div>{job.jobDetailsFromCompany}</div>
+                    <div
+                      style={{
+                        overflow: "auto",
+                        height: "20.5rem",
+                        scrollbarWidth: "none",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {job.jobDetailsFromCompany}
+                    </div>
+                    <Button
+                      sx={{
+                        width: "100%",
+                        background:
+                          "linear-gradient(to bottom,rgba(255,255,255,0.9), white)",
+                        position: "absolute",
+                        left: "0",
+                        bottom: "0",
+                        height: "3rem",
+                        textTransform: "none",
+                        boxShadow: "0rem -2rem 2rem rgba(255,255,255,1)",
+                      }}
+                      disableRipple
+                    >
+                      Show more
+                    </Button>
                   </CardContent>
                   <CardActions>
-                    <Grid container spacing={1}>
+                    <Grid container spacing={3}>
+                      <Grid item display={"flex"} flexDirection={"column"}>
+                        <Typography variant="h7" fontWeight={600}>
+                          Minimum Experience
+                        </Typography>
+                        <Typography variant="h8">
+                          {job.minExp ? `${job.minExp} years` : "Any"}
+                        </Typography>
+                      </Grid>
                       <Grid item lg={12}>
                         <Button
                           startIcon={<CustomBoltIcon />}
@@ -133,30 +163,6 @@ function App() {
                           Easy Apply
                         </Button>
                       </Grid>
-                      {index !== 0 && index % 2 == 0 && (
-                        <Grid item lg={12}>
-                          <Button
-                            startIcon={<AccountCircleIcon />}
-                            variant="contained"
-                            sx={{
-                              background: "#4943DA",
-                              boxShadow: "none",
-                              width: "100%",
-                              color: "#fff",
-                              textTransform: "none",
-                              fontSize: "1rem",
-                              borderRadius: "0.5rem",
-                              "&:hover": {
-                                background: "#4943DA",
-                                boxShadow: "none",
-                              },
-                            }}
-                            onClick={() => window.open(job.jdLink, "_blank")}
-                          >
-                            Ask for referral
-                          </Button>
-                        </Grid>
-                      )}
                     </Grid>
                   </CardActions>
                 </Card>
