@@ -6,6 +6,7 @@ import {
   CardActions,
   CardContent,
   CardHeader,
+  Chip,
   Container,
   Grid,
   Typography,
@@ -13,6 +14,7 @@ import {
 } from "@mui/material"
 import axios from "axios"
 import { useEffect, useState } from "react"
+import Select from "react-select"
 
 const CustomBoltIcon = styled(BoltIcon)(({ theme }) => ({
   color: "#FF822D",
@@ -51,7 +53,9 @@ function App() {
   }, [])
 
   return (
-    <Container maxWidth="lg" style={{ padding: "4rem 0rem" }}>
+    <Container maxWidth="lg" style={{ padding: "4rem 2rem" }}>
+      <Grid container></Grid>
+
       <Grid container spacing={8}>
         {jobList
           ? jobList?.map((job, index) => (
@@ -63,12 +67,21 @@ function App() {
                     filter: "drop-shadow(0rem 0rem 0.25rem #00000025)",
                     borderRadius: "1rem",
                     transition: "all 0.1s ease-out",
+                    padding: "1rem",
                     "&:hover": {
                       transform: "scale(1.01)",
                       transition: "all 0.1s ease-in",
                     },
                   }}
                 >
+                  <Chip
+                    label="⏳ Posted 10 days ago"
+                    sx={{
+                      background: "transparent",
+                      boxShadow: "0rem 0rem 0.5rem #00000040",
+                    }}
+                    size="small"
+                  />
                   <CardHeader
                     avatar={
                       <Avatar aria-label="image">
@@ -102,7 +115,14 @@ function App() {
                       <small>{capitalizeFirstLetter(job.location)}</small>
                     }
                   />
+
                   <CardContent sx={{ position: "relative" }}>
+                    <Typography>
+                      Estimated Salary: $
+                      {job.minJdSalary && `${job.minJdSalary}k`}
+                      {job.minJdSalary && job?.maxJdSalary ? " - " : ""}
+                      {`${job.maxJdSalary}k`} USD
+                    </Typography>
                     <Typography variant="h6">About Company:</Typography>
                     <div
                       style={{
@@ -125,6 +145,9 @@ function App() {
                         height: "3rem",
                         textTransform: "none",
                         boxShadow: "0rem -2rem 2rem rgba(255,255,255,1)",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
                       }}
                       disableRipple
                     >
@@ -141,7 +164,7 @@ function App() {
                           {job.minExp ? `${job.minExp} years` : "Any"}
                         </Typography>
                       </Grid>
-                      <Grid item lg={12}>
+                      <Grid item xs={12}>
                         <Button
                           startIcon={<CustomBoltIcon />}
                           variant="contained"
