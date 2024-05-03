@@ -15,10 +15,20 @@ import {
   styled,
 } from "@mui/material"
 import axios from "axios"
-import { createContext, useCallback, useEffect, useRef, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import Select from "react-select"
 import JobCard from "./components/JobCard/JobCard.component"
 import JobDirectory from "./components/JobDirectory/JobDirectory.component"
+import _ from "lodash"
+import { capitalizeFirstLetter } from "./utils/stringHelperFn"
+import { applyFilter } from "./utils/filterFn"
 
 export const JobListContext = createContext(null)
 
@@ -27,12 +37,19 @@ function App() {
   const limitRef = useRef(9)
   const offsetRef = useRef(0)
 
-  const [minExpOptions, setMinExpOptions] = useState([])
+  const [minExpOptions, setMinExpOptions] = useState(
+    Array.from({ length: 25 }, (_, i) => ({ label: i + 1, value: i + 1 }))
+  )
+  const [companyOptions, setCompanyOptions] = useState([])
   const [locationOptions, setLocationOptions] = useState([])
-  const [jobTypeOptions, setJobTypeOptions] = useState([])
-  const [techStackOptions, setTechStackOptions] = useState([])
   const [roleOptions, setRoleOptions] = useState([])
   const [minBasePayOptions, setMinBasePayOptions] = useState([])
+
+  const [minExp, setMinExp] = useState(null)
+  const [companyName, setCompanyName] = useState("")
+  const [location, setLocation] = useState("")
+  const [jobRole, setJobRole] = useState("")
+  const [minJdSal, setMinJdSal] = useState(null)
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -46,13 +63,6 @@ function App() {
     })
     observer.observe(node)
   }, [])
-
-  const dropdownOptionsSetter = (data) => {
-    setMinExpOptions(
-      Array.from({ length: "20" }, (_, i) => ({ label: i + 1, value: i + 1 }))
-    )
-    console.log(data.filter((job) => data.indexOf(job)))
-  }
 
   const fetchJobLists = async ({ overwrite = false } = {}) => {
     setIsLoading(true)
@@ -72,10 +82,52 @@ function App() {
           setJobList(jdList)
         } else {
           setJobList((prevJobList) => [...prevJobList, ...jdList])
-          console.log("hello")
         }
+        const uniqueCompanyNames = _.uniqBy(
+          [...jobList, ...jdList],
+          (job) => job.companyName
+        ).map((job) => ({
+          label: capitalizeFirstLetter(job.companyName),
+          value: job.companyName,
+        }))
+        setCompanyOptions((prevOptions) => [
+          ...prevOptions,
+          ...uniqueCompanyNames,
+        ])
 
-        // dropdownOptionsSetter(jdList)
+        const uniqueLocation = _.uniqBy(
+          [...jobList, ...jdList],
+          (job) => job.location
+        ).map((job) => ({
+          label: capitalizeFirstLetter(job.location),
+          value: job.location,
+        }))
+        setLocationOptions((prevOptions) => [...prevOptions, ...uniqueLocation])
+
+        const uniqueRole = _.uniqBy(
+          [...jobList, ...jdList],
+          (job) => job.jobRole
+        ).map((job) => ({
+          label: capitalizeFirstLetter(job.jobRole),
+          value: job.jobRole,
+        }))
+        setRoleOptions((prevOptions) => [...prevOptions, ...uniqueRole])
+
+        const uniqueMinBasePay = _.uniqBy(
+          [...jobList, ...jdList],
+          (job) => job.minJdSalary
+        )
+          .filter((job) => job.minJdSalary != null)
+          .map((job) => ({
+            label: `$${job.minJdSalary}k ${job.salaryCurrencyCode}`,
+            value: `${job.minJdSalary}`,
+          }))
+        setMinBasePayOptions((prevOptions) => [
+          ...prevOptions,
+          ...uniqueMinBasePay,
+        ])
+        console.log({ uniqueMinBasePay })
+
         return
       }
       return Promise.reject(response)
@@ -101,6 +153,13 @@ function App() {
     setJobList(updatedJobList)
   }
 
+  const filteredJobListngs = applyFilter(
+    jobList,
+    minExp || companyName || location || jobRole || minJdSal
+  )
+
+  console.log({ filteredJobListngs })
+
   return (
     <Container
       maxWidth="lg"
@@ -111,33 +170,52 @@ function App() {
         gap: "3rem",
       }}
     >
+      <Typography variant="h3" width="100%" textAlign="center">
+        JOB FINDER
+      </Typography>
       <JobListContext.Provider
-        value={{ jobList, expandDescription, isLoading, cardRef }}
+        value={{
+          jobList: filteredJobListngs,
+          expandDescription,
+          isLoading,
+          cardRef,
+        }}
       >
         <Grid container spacing={2}>
-          <Grid item>
-            <Select placeholder="Min. Experience" options={minExpOptions} />
-          </Grid>
-          <Grid item>
+          <Grid item lg={3} md={4} sm={6} xs={12}>
             <Select
-              placeholder="Company Name"
-              options={[{ label: "Weekday", value: "weekDay" }]}
+              placeholder="Min. Experience"
+              options={minExpOptions}
+              onChange={(option) => setMinExp(option.value)}
             />
           </Grid>
-          <Grid item>
-            <Select placeholder="Location" />
+          <Grid item lg={3} md={4} sm={6} xs={12}>
+            <Select
+              placeholder="Company Name"
+              options={companyOptions}
+              onChange={(option) => setCompanyName(option.value)}
+            />
           </Grid>
-          <Grid item>
-            <Select placeholder="Remote/Onsite" />
+          <Grid item lg={3} md={4} sm={6} xs={12}>
+            <Select
+              placeholder="Location"
+              options={locationOptions}
+              onChange={(option) => setLocation(option.value)}
+            />
           </Grid>
-          <Grid item>
-            <Select placeholder="Tech Stack" />
+          <Grid item lg={3} md={4} sm={6} xs={12}>
+            <Select
+              placeholder="Role"
+              options={roleOptions}
+              onChange={(option) => setJobRole(option.value)}
+            />
           </Grid>
-          <Grid item>
-            <Select placeholder="Role" />
-          </Grid>
-          <Grid item>
-            <Select placeholder="Min Base Pay Salary" />
+          <Grid item lg={3} md={4} sm={6} xs={12}>
+            <Select
+              placeholder="Min Base Pay Salary"
+              options={minBasePayOptions}
+              onChange={(option) => setMinJdSal(option.value)}
+            />
           </Grid>
         </Grid>
 

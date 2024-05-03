@@ -78,14 +78,10 @@ const JobCard = forwardRef(({ job, index }, ref) => {
         />
 
         <CardContent sx={{ position: "relative" }}>
-          <Typography>
-            Estimated Salary:
-            <span style={{ fontWeight: "600" }}>
-              {" "}
-              ${job.minJdSalary && `${job.minJdSalary}k`}
-              {job.minJdSalary && job?.maxJdSalary ? " - " : ""}
-              {`${job.maxJdSalary}k`} {job?.salaryCurrencyCode}
-            </span>
+          <Typography fontWeight="lighter">
+            Estimated Salary: ${job.minJdSalary && `${job.minJdSalary}k`}
+            {job.minJdSalary && job?.maxJdSalary ? " - " : ""}
+            {`${job.maxJdSalary}k`} {job?.salaryCurrencyCode}
           </Typography>
           <Typography variant="h6">About Company:</Typography>
           <div
