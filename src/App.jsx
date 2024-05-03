@@ -16,7 +16,7 @@ import {
   styled,
 } from "@mui/material"
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Select from "react-select"
 
 const CustomBoltIcon = styled(BoltIcon)(({ theme }) => ({
@@ -37,6 +37,8 @@ const joinStrings = (words) => {
 
 function App() {
   const [jobList, setJobList] = useState([])
+  const limitRef = useRef(10)
+  const offsetRef = useRef(0)
 
   const [minExpOptions, setMinExpOptions] = useState([])
   const [locationOptions, setLocationOptions] = useState([])
@@ -45,41 +47,57 @@ function App() {
   const [roleOptions, setRoleOptions] = useState([])
   const [minBasePayOptions, setMinBasePayOptions] = useState([])
 
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const hof = (data, key) => {
-    return
-  }
+  const cardRef = useCallback((node) => {
+    if (node == null) return
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        fetchJobLists()
+        observer.unobserve(node)
+      }
+    })
+    observer.observe(node)
+  }, [])
 
   const dropdownOptionsSetter = (data) => {
     setMinExpOptions(
       Array.from({ length: "20" }, (_, i) => ({ label: i + 1, value: i + 1 }))
     )
+    console.log(data.filter((job) => data.indexOf(job)))
   }
 
-  const fetchJobLists = async () => {
-    setLoading(true)
+  const fetchJobLists = async ({ overwrite = false } = {}) => {
     try {
+      offsetRef.current = !overwrite ? offsetRef.current + limitRef.current : 0
       const response = await axios.post(
         "https://api.weekday.technology/adhoc/getSampleJdJSON",
-        { limit: 10, offset: 0 }
+        { limit: limitRef.current, offset: offsetRef.current }
       )
       if (response.status === 200) {
-        const jdList = await response.data?.jdList
-        setJobList(jdList.map((jd) => ({ ...jd, showMore: false })))
-        dropdownOptionsSetter(jdList)
+        const jdList = await response.data?.jdList.map((jd) => ({
+          ...jd,
+          showMore: false,
+        }))
+        console.log({ jdList })
+        if (overwrite) {
+          setJobList(jdList)
+        } else {
+          setJobList((prevJobList) => [...prevJobList, ...jdList])
+          console.log("hello")
+        }
+
+        // dropdownOptionsSetter(jdList)
         return
       }
       return Promise.reject(response)
     } catch (error) {
       console.log(error)
-    } finally {
-      setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchJobLists()
+    fetchJobLists({ overwrite: true })
   }, [])
 
   const expandDescription = (index) => {
@@ -108,7 +126,10 @@ function App() {
           <Select placeholder="Min. Experience" options={minExpOptions} />
         </Grid>
         <Grid item>
-          <Select placeholder="Company Name" />
+          <Select
+            placeholder="Company Name"
+            options={[{ label: "Weekday", value: "weekDay" }]}
+          />
         </Grid>
         <Grid item>
           <Select placeholder="Location" />
@@ -128,7 +149,7 @@ function App() {
       </Grid>
 
       <Grid container spacing={8}>
-        {!loading ? (
+        {jobList &&
           jobList?.map((job, index) => (
             <Grid item xs={12} lg={4} md={4} sm={6} key={job.jdUid}>
               <Card
@@ -145,6 +166,7 @@ function App() {
                     transition: "all cubic-bezier(0.4, 0, 0.2, 1) 0.1s ease-in",
                   },
                 }}
+                ref={index == jobList.length - 1 ? cardRef : undefined}
               >
                 <Chip
                   label="⏳ Posted 10 days ago"
@@ -161,27 +183,28 @@ function App() {
                     </Avatar>
                   }
                   title={
-                    <div
+                    <Typography
                       style={{
                         padding: "0rem",
                         margin: "0rem",
                         fontWeight: "500",
                         color: "#8b8b8b",
-                        fontSize: "0.9rem",
+                        fontSize: "1rem",
                       }}
                     >
                       Week Day
-                      <p
+                      <Typography
                         style={{
                           padding: "0rem",
                           margin: "0rem",
                           fontWeight: "500",
                           color: "#000",
                         }}
+                        variant="h6"
                       >
                         {joinStrings(job.jobRole)}
-                      </p>
-                    </div>
+                      </Typography>
+                    </Typography>
                   }
                   subheader={
                     <small>{capitalizeFirstLetter(job.location)}</small>
@@ -265,32 +288,7 @@ function App() {
                 </CardActions>
               </Card>
             </Grid>
-          ))
-        ) : (
-          <Grid item xs={12} lg={4} md={4} sm={6}>
-            <Box sx={{ width: "100%", height: "1rem" }}>
-              <Box sx={{ width: "100%", display: "flex", gap: "1rem" }}>
-                <Skeleton variant="circular" sx={{ aspectRatio: "1/1" }}>
-                  <Avatar />
-                </Skeleton>
-                <Stack sx={{ width: "100%" }}>
-                  {Array.from({ length: 3 }, (_, i) => (
-                    <Skeleton height={14} width={100} />
-                  ))}
-                </Stack>
-
-                <Stack sx={{ width: "100%" }}>
-                  <Skeleton height={18} width="100%" />
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <Skeleton height={14} width="100%" />
-                  ))}
-                </Stack>
-                <Skeleton variant="rectangular" height="3rem" width="100%" />
-              </Box>
-              <Stack></Stack>
-            </Box>
-          </Grid>
-        )}
+          ))}
       </Grid>
     </Container>
   )
