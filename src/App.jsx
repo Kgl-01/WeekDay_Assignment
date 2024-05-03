@@ -37,7 +37,26 @@ const joinStrings = (words) => {
 
 function App() {
   const [jobList, setJobList] = useState([])
+
+  const [minExpOptions, setMinExpOptions] = useState([])
+  const [locationOptions, setLocationOptions] = useState([])
+  const [jobTypeOptions, setJobTypeOptions] = useState([])
+  const [techStackOptions, setTechStackOptions] = useState([])
+  const [roleOptions, setRoleOptions] = useState([])
+  const [minBasePayOptions, setMinBasePayOptions] = useState([])
+
   const [loading, setLoading] = useState(false)
+
+  const hof = (data, key) => {
+    return
+  }
+
+  const dropdownOptionsSetter = (data) => {
+    setMinExpOptions(
+      Array.from({ length: "20" }, (_, i) => ({ label: i + 1, value: i + 1 }))
+    )
+  }
+
   const fetchJobLists = async () => {
     setLoading(true)
     try {
@@ -46,7 +65,9 @@ function App() {
         { limit: 10, offset: 0 }
       )
       if (response.status === 200) {
-        setJobList(response.data?.jdList)
+        const jdList = await response.data?.jdList
+        setJobList(jdList.map((jd) => ({ ...jd, showMore: false })))
+        dropdownOptionsSetter(jdList)
         return
       }
       return Promise.reject(response)
@@ -61,6 +82,17 @@ function App() {
     fetchJobLists()
   }, [])
 
+  const expandDescription = (index) => {
+    const updatedJobList = jobList.map((job, idx) => {
+      if (idx == index) {
+        return { ...job, showMore: !job?.showMore }
+      }
+      return job
+    })
+
+    setJobList(updatedJobList)
+  }
+
   return (
     <Container
       maxWidth="lg"
@@ -71,9 +103,9 @@ function App() {
         gap: "3rem",
       }}
     >
-      <Grid container display={"flex"} justifyContent="space-between">
+      <Grid container spacing={2}>
         <Grid item>
-          <Select placeholder="Min. Experience" />
+          <Select placeholder="Min. Experience" options={minExpOptions} />
         </Grid>
         <Grid item>
           <Select placeholder="Company Name" />
@@ -167,7 +199,7 @@ function App() {
                   <div
                     style={{
                       overflow: "auto",
-                      height: "20.5rem",
+                      height: !job.showMore && "20.5rem",
                       scrollbarWidth: "none",
                       pointerEvents: "none",
                     }}
@@ -177,21 +209,24 @@ function App() {
                   <Button
                     sx={{
                       width: "100%",
-                      background:
-                        "linear-gradient(to bottom,rgba(255,255,255,0.9), white)",
-                      position: "absolute",
-                      left: "0",
-                      bottom: "0",
+                      background: !job.showMore
+                        ? "linear-gradient(to bottom,rgba(255,255,255,0.9), white)"
+                        : "#fff",
+                      position: !job.showMore && "absolute",
+                      left: !job.showMore && "0",
+                      bottom: !job.showMore && "0",
                       height: "3rem",
                       textTransform: "none",
-                      boxShadow: "0rem -2rem 2rem rgba(255,255,255,1)",
+                      boxShadow:
+                        !job.showMore && "0rem -2rem 2rem rgba(255,255,255,1)",
                       "&:hover": {
                         textDecoration: "underline",
                       },
                     }}
-                    disableRipple
+                    disableRipple={true}
+                    onClick={() => expandDescription(index)}
                   >
-                    Show more
+                    Show {job.showMore ? "less" : "more"}
                   </Button>
                 </CardContent>
                 <CardActions>
