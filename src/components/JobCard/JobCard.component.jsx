@@ -90,6 +90,7 @@ const JobCard = forwardRef(({ job, index }, ref) => {
               height: !job.showMore && "20.5rem",
               scrollbarWidth: "none",
               pointerEvents: "none",
+              textWrap: "balance",
             }}
           >
             {job.jobDetailsFromCompany}
