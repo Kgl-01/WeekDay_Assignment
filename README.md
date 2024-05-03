@@ -1,8 +1,20 @@
-# React + Vite
+# Weekday Assignment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**This project is done using MUI react component library.**
 
-Currently, two official plugins are available:
+**Objectives**
+Achieved:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Created `job card` component and rendered `job card list`.
+- Implemented `show more`(expand description) feature for job card.
+- Implemented infinite scroll feature.
+- Rendered filter tool bar.
+
+Incomplete:
+-The filter dropdowns are rendered on the screen and it works partially.
+
+Additional:
+-Added skeleton component for better user experience
+-The prod build is hosted using vercel.
+
+**Live Demo** : [Weekday Assignment](https://weekday-project.vercel.app/)
